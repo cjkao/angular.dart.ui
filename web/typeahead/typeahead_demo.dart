@@ -3,10 +3,9 @@
 // All rights reserved.  Please see the LICENSE.md file.
 part of angular.ui.demo;
 
-
-@Controller(selector: '[typeahead_demo_controller]', 
-    publishAs: 'demoCtrl',
-    exportExpressions: const ["states", r"$viewValue", "state", "statesWithFlags", "getLocation", "address", "popupId", "activeIdx"])
+/// exportExpressions: const ["states", r"$viewValue", "state", "statesWithFlags", "getLocation", "address", "popupId", "activeIdx"]
+@Component(selector: '[typeahead_demo_controller]'
+   )
 class TypeaheadDemoController {
 
   Http _http;

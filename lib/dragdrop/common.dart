@@ -40,14 +40,14 @@ abstract class AbstractDraggableDroppableComponent {
 
   DraggableElementHandler _draggableHandler;
   List<String> _dropZoneNames = [new math.Random().nextDouble().toString()];
-  
+
   final html.Element elem;
   final DragDropZonesService ddZonesService;
 
   BaseDDConfig _config;
   bool _dragEnabled = false;
   bool dropEnabled = false;
-  
+
   List<String> get dropZoneNames => _dropZoneNames;
   set dropZoneNames(var names) {
     if (names!=null && (names is String)) {
@@ -56,23 +56,23 @@ abstract class AbstractDraggableDroppableComponent {
       this._dropZoneNames = names;
     }
   }
-  
+
   BaseDDConfig get config => _config;
   set config(BaseDDConfig config) {
     this._config = config;
     _draggableHandler.refresh();
   }
-  
+
   bool get dragEnabled => _dragEnabled;
   set dragEnabled(bool enabled) {
     _dragEnabled = enabled;
     _draggableHandler.refresh();
   }
-  
+
   AbstractDraggableDroppableComponent(this.elem, this.ddZonesService, BaseDDConfig config) {
     _draggableHandler = new DraggableElementHandler(this);
     this.config = config;
-    
+
     //drop events
     {
       elem.onDragEnter.listen(_onDragEnter);
@@ -88,7 +88,7 @@ abstract class AbstractDraggableDroppableComponent {
       elem.onTouchLeave.listen(_onDragLeave);
       elem.onDrop.listen(_onDrop);
     }
-    
+
     //drag events
     {
       elem.onDragStart.listen((html.MouseEvent event) {
@@ -97,16 +97,16 @@ abstract class AbstractDraggableDroppableComponent {
         if (event.dataTransfer!=null) {
           event.dataTransfer.effectAllowed = this.config.dragEffect.name;
           event.dataTransfer.setData('text/html', '');
-          
+
           if (this.config.dragImage!=null) {
             DragImage dragImage = this.config.dragImage;
             event.dataTransfer.setDragImage(dragImage.imageElement, dragImage.x_offset, dragImage.y_offset);
           }
-          
+
         }
       });
       elem.onDragEnd.listen(_onDragEnd) ;
-      
+
       elem.onTouchStart.listen(_onDragStart) ;
       elem.onTouchEnd.listen(_onDragEnd) ;
     }
@@ -147,7 +147,7 @@ abstract class AbstractDraggableDroppableComponent {
     _log.finer("'drop' event");
     onDropCallback(event);
   }
-  
+
   bool isDropAllowed() {
     if (_dropZoneNames.isEmpty && ddZonesService.allowedDropZones.isEmpty) {
       return true;
@@ -174,12 +174,12 @@ abstract class AbstractDraggableDroppableComponent {
     ddZonesService.allowedDropZones = [];
     onDragEndCallback(event);
   }
-  
+
   void onDragEnterCallback(html.Event event) {}
   void onDragOverCallback(html.Event event) {}
   void onDragLeaveCallback(html.Event event) {}
   void onDropCallback(html.Event event)  {}
   void onDragStartCallback(html.Event event) {}
   void onDragEndCallback(html.Event event) {}
-  
+
 }

@@ -1,0 +1,13 @@
+.action{
+  float:right;
+  margin-right:4px;
+}
+li.red{
+  border-bottom: 4px dotted red;
+}
+
+
+div.panel-body{
+  height:300px;
+  overflow:scroll;
+}

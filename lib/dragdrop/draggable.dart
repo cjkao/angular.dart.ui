@@ -22,7 +22,7 @@ class DragDropConfigService {
 }
 
 @Decorator(selector: '[ui-draggable]',
-  visibility: Directive.CHILDREN_VISIBILITY)
+  visibility: Visibility.CHILDREN)
 class DraggableComponent extends AbstractDraggableDroppableComponent {
 
   @NgOneWay("draggable-enabled")
@@ -33,15 +33,15 @@ class DraggableComponent extends AbstractDraggableDroppableComponent {
   }
   @NgOneWay("draggable-data")
   var draggableData;
-  
+
   DragDropConfig ddConfig;
-  
+
   @NgOneWay("ui-draggable")
   set dragdropConfig(var config) {
     if (!(config is DragDropConfig)) {
       return;
     }
-    this.config = ddConfig = config as DragDropConfig; 
+    this.config = ddConfig = config as DragDropConfig;
   }
   @NgCallback("on-drag-success")
   Function onDragSuccessCallback;
@@ -50,9 +50,9 @@ class DraggableComponent extends AbstractDraggableDroppableComponent {
   set dropZones (var dropZones) {
     this.dropZoneNames = dropZones;
   }
-  
+
   DragDropDataService dragDropService;
-  
+
   DraggableComponent(html.Element elem, DragDropZonesService ddZonesService, this.dragDropService, DragDropConfigService dragDropConfigService)
   : super(elem, ddZonesService, dragDropConfigService.dragDropConfig) {
     dragdropConfig = dragDropConfigService.dragDropConfig;
@@ -79,13 +79,13 @@ class DraggableComponent extends AbstractDraggableDroppableComponent {
 }
 
 class DraggableElementHandler {
-  
+
   String defaultCursor;
   AbstractDraggableDroppableComponent draggableComponent;
   DraggableElementHandler(this.draggableComponent ) {
     defaultCursor = draggableComponent.elem.style.cursor;
   }
-  
+
   void refresh() {
     draggableComponent.elem.draggable = draggableComponent._dragEnabled;
     if (draggableComponent.config.dragCursor!=null) {

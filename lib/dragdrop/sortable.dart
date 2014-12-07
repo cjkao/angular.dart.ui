@@ -11,7 +11,7 @@ class SortableConfig extends BaseDDConfig {
 class DragDropSortableDataService {
   int index;
   List sortableData;
-  
+
   html.Element _elem;
   SortableConfig _config;
   void element(html.Element elem, SortableConfig config) {
@@ -29,11 +29,11 @@ class DragDropSortableDataService {
 @Decorator(selector: '[ui-sortable]',
     visibility: Directive.CHILDREN_VISIBILITY)
 class SortableComponent extends AbstractDraggableDroppableComponent {
- 
+
   DragDropSortableDataService sortableDataService;
   SortableConfig _sortableConfig;
   List _sortableData = [];
-  
+
   @NgTwoWay('ui-sortable-data')
   List get sortableData => _sortableData;
   set sortableData (var sortableData) {
@@ -48,36 +48,36 @@ class SortableComponent extends AbstractDraggableDroppableComponent {
     if (!(config is SortableConfig)) {
       return;
     }
-    this.config = _sortableConfig = config as SortableConfig; 
+    this.config = _sortableConfig = config as SortableConfig;
   }
-  
+
   @NgOneWay('ui-sortable-zones')
   set sortableZones (var dropZones) {
     this.dropZoneNames = dropZones;
   }
   List<String> get sortableZones => this._dropZoneNames;
-  
-  SortableComponent(html.Element elem, DragDropZonesService ddZonesService, DragDropConfigService dragDropConfigService, 
+
+  SortableComponent(html.Element elem, DragDropZonesService ddZonesService, DragDropConfigService dragDropConfigService,
       this.sortableDataService, Scope scope)
   : super(elem, ddZonesService, new BaseDDConfig()) {
    this.sortableConfig = dragDropConfigService.sortableConfig;
-   
+
    scope.watch(elem.attributes['ui-sortable-data'], (oldValue, newValue) {
      onSortableDataChange();
-   }, collection: true); 
+   }, collection: true);
 
   }
 
   @override
   void onDragEnterCallback(html.Event event) {
-    
+
     _log.finer('drag node [' + sortableDataService.index.toString() + '] over parent node');
     _sortableData.add(sortableDataService.sortableData.removeAt(sortableDataService.index));
     sortableDataService.sortableData = _sortableData;
     sortableDataService.index = 0;
 
   }
-  
+
   void onSortableDataChange() {
     this.dropEnabled = _sortableData.isEmpty;
     _log.finer("collection is changed, drop enabled: " + this.dropEnabled.toString());
@@ -86,20 +86,20 @@ class SortableComponent extends AbstractDraggableDroppableComponent {
 
 @Decorator(selector: '[ui-sortable-item]')
 class SortableItemComponent extends AbstractDraggableDroppableComponent {
-  
+
   final SortableComponent sortableComponent;
   final DragDropSortableDataService sortableDataService;
-  
+
   @NgOneWay('ui-sortable-item')
   int index;
-  
+
   SortableItemComponent(this.sortableComponent, this.sortableDataService, html.Element elem, DragDropZonesService ddZonesService, DragDropConfigService ddcService)
     : super(elem, ddZonesService, ddcService.sortableConfig) {
     this.dropZoneNames = this.sortableComponent.dropZoneNames;
     this.dragEnabled = true;
     this.dropEnabled = true;
   }
-  
+
   @override
   void onDragStartCallback(html.Event event) {
     _log.finer('dragging elem with index ' + index.toString());
@@ -107,33 +107,59 @@ class SortableItemComponent extends AbstractDraggableDroppableComponent {
     sortableDataService.index = index;
     sortableDataService.element(elem, sortableComponent._sortableConfig);
   }
-  
+
   @override
   void onDragOverCallback(html.Event event) {
     //This is needed to make it working on Firefox. Probably the order the events are triggered is not the same in FF
-    //and Chrome. 
+    //and Chrome.
     if (elem != sortableDataService._elem) {
       sortableDataService.sortableData = sortableComponent._sortableData;
       sortableDataService.index = index;
       sortableDataService.element(elem, sortableComponent._sortableConfig);
     }
   }
-  
+
   @override
   void onDragEndCallback(html.Event event) {
     sortableDataService.sortableData = null;
     sortableDataService.index = null;
     sortableDataService.element(null, sortableComponent._sortableConfig);
   }
-  
+
+//  @override
+//  void onDragEnterCallback(html.Event event) {
+//    sortableDataService.element(elem, sortableComponent._sortableConfig);
+//    if ((index != sortableDataService.index) || (sortableDataService.sortableData != sortableComponent._sortableData)) {
+//      _log.finer('drag node [' + index.toString() + '] over node [' + sortableDataService.index.toString() + ']');
+//              sortableComponent._sortableData.insert(index, sortableDataService.sortableData.removeAt(sortableDataService.index));
+//              sortableDataService.sortableData = sortableComponent._sortableData;
+//              sortableDataService.index = index;
+//        }
+//  }
+
   @override
-  void onDragEnterCallback(html.Event event) {
-    sortableDataService.element(elem, sortableComponent._sortableConfig);
-    if ((index != sortableDataService.index) || (sortableDataService.sortableData != sortableComponent._sortableData)) {
-      _log.finer('drag node [' + index.toString() + '] over node [' + sortableDataService.index.toString() + ']');
-              sortableComponent._sortableData.insert(index, sortableDataService.sortableData.removeAt(sortableDataService.index));
-              sortableDataService.sortableData = sortableComponent._sortableData;
-              sortableDataService.index = index;
-        }
-  }
+   void onDropCallback(html.Event event) {
+     sortableDataService.element(elem, sortableComponent._sortableConfig);
+     _log.finer('$index ${sortableDataService.index} ${event.dataTransfer.getData("idx")}');
+     int srcIdx=int.parse(event.dataTransfer.getData("idx"));
+     if(srcIdx==index)return;
+     var dropItem=sortableComponent._sortableData[srcIdx];
+     sortableComponent._sortableData.insert(index+1, dropItem);
+     if(srcIdx<index){
+       sortableComponent._sortableData.removeAt(srcIdx);
+     }else{
+       sortableComponent._sortableData.removeAt(srcIdx+1);
+     }
+//     sortableComponent._sortableData.removeAt(srcIdx);
+//     sortableComponent._sortableData[srcIdx] = left;
+//     sortableComponent._sortableData.insert(index, sortableComponent._sortableData[srcIdx]);
+
+//     if ((index != sortableDataService.index) || (sortableDataService.sortableData != sortableComponent._sortableData)) {
+//       _log.finer('drag node [' + index.toString() + '] over node [' + sortableDataService.index.toString() + ']');
+//               sortableComponent._sortableData.insert(index, sortableDataService.sortableData.removeAt(sortableDataService.index));
+//               sortableDataService.sortableData = sortableComponent._sortableData;
+//               sortableDataService.index = index;
+//     }
+   }
+
 }
