@@ -9,6 +9,7 @@
 packages
 packages/
 .buildlog
+build/*
 content_shell*.zip
 drt-*
 test.log

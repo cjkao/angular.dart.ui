@@ -74,10 +74,27 @@ class DemoModule extends Module {
 //    bind(TabsCtrl);
     bind(AccordionDemo);
     bind(RatingDemo);
+    bind(Book);
+    bind(Chapter);
 //    bind(DragDropShoppingBasketDemoController);
 //    bind(DragDropListDemoController);
 //    bind(DragDropCustomImageDemoController);
 //    bind(DragDropHandlerDemoController);
 //    bind(TypeaheadDemoController);
   }
+}
+
+@Injectable()
+class Book{
+  String name='WA.........HA';
+  List names = ['a', 'b','e','c','d'];
+}
+@Component(
+  selector: 'first-chapter',
+  template:'''<span>in sub:{{book.name}} <input type='text' ng-model='book.name'> <content></content></span>
+'''
+  )
+class Chapter{
+  Book book;
+  Chapter(this.book);
 }
