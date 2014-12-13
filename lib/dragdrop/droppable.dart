@@ -3,96 +3,62 @@
 // All rights reserved.  Please see the LICENSE.md file.
 part of angular.ui.dragdrop;
 
-@Decorator(selector: '[ui-droppable]')
-class DroppableComponent {
 
-  html.Element _elem;
-  DragDropDataService _dragDropService;
-  DragDropConfig _dragDropConfig;
-  List<String> dropZoneNames = [];
-  
-  @NgOneWay("drop-zones")
-  set dropZones (var dropZoneNames) {
-    if (dropZoneNames!=null && (dropZoneNames is String)) {
-      this.dropZoneNames = [dropZoneNames];
-    } else if (dropZoneNames!=null && (dropZoneNames is List<String>)) {
-      this.dropZoneNames = dropZoneNames;
-    }
-  }
-  
+@Decorator(selector: '[ui-droppable]')
+class DroppableComponent extends AbstractDraggableDroppableComponent {
+
   @NgCallback("on-drop-success")
   Function onDropSuccessCallback;
   
-  @NgOneWay("dragdrop-config")
-  set dragdropConfig(DragDropConfig config) {
-    _dragDropConfig = config;
+  DragDropConfig ddConfig;
+  
+  @NgOneWay("ui-droppable")
+  set dragdropConfig(var config) {
+    if (!(config is DragDropConfig)) {
+      return;
+    }
+    this.config = ddConfig = config as DragDropConfig; 
   }
   
-  DroppableComponent(this._elem, this._dragDropService, DragDropConfigService dragDropConfigService) {
-    _dragDropConfig = dragDropConfigService.config;
-    _elem.onDragEnter.listen(_onDragEnter);
-    _elem.onDragOver.listen((html.MouseEvent event) {
-      _onDragOver(event);
-      //workaround to avoid NullPointerException during unit testing
-      if (event.dataTransfer!=null) {
-        event.dataTransfer.dropEffect = _dragDropConfig.dropEffect.name;
-      }
-    });
-    _elem.onDragLeave.listen(_onDragLeave);
-    _elem.onTouchEnter.listen(_onDragEnter);
-    _elem.onTouchLeave.listen(_onDragLeave);
-    _elem.onDrop.listen(_onDrop);
+  @NgOneWay("drop-zones")
+  set dropZones (var dropZoneNames) {
+    this.dropZoneNames = dropZoneNames;
+  }
+  
+  DragDropDataService dragDropService;
+  
+  DroppableComponent(html.Element elem, DragDropZonesService ddZonesService, this.dragDropService, DragDropConfigService dragDropConfigService)
+  : super(elem, ddZonesService, dragDropConfigService.dragDropConfig) {
+    dragdropConfig = dragDropConfigService.dragDropConfig;
+    this.dropEnabled = true;
   }
 
-  void _onDragEnter(html.Event event) {
-    if(!isAllowedDragZone()) {
-      return;
-    }
-    // This is necessary to allow us to drop.
-    event.preventDefault();
-    _elem.classes.add(_dragDropConfig.onDragEnterClass);
+  @override
+  void onDragEnterCallback(html.Event event) {
+    elem.classes.add(ddConfig.onDragEnterClass);
   }
 
-  void _onDragOver(html.Event event) {
-    if(!isAllowedDragZone()) {
-      return;
-    }
-    // This is necessary to allow us to drop.
-    event.preventDefault();
-    _elem.classes.add(_dragDropConfig.onDragOverClass);
+  @override
+  void onDragLeaveCallback(html.Event event) {
+    elem.classes.remove(ddConfig.onDragOverClass);
+    elem.classes.remove(ddConfig.onDragEnterClass);
   }
 
-  void _onDragLeave(html.Event event) {
-    if(!isAllowedDragZone()) {
-      return;
-    }
-    _elem.classes.remove(_dragDropConfig.onDragOverClass);
-    _elem.classes.remove(_dragDropConfig.onDragEnterClass);
+  @override
+  void onDragOverCallback(html.Event event) {
+    elem.classes.add(ddConfig.onDragOverClass);
   }
 
-  void _onDrop(html.Event event) {
-    if(!isAllowedDragZone()) {
-      return;
-    }
+  @override
+  void onDropCallback(html.Event event) {
     if (onDropSuccessCallback!=null) {
-      onDropSuccessCallback({'data':_dragDropService.draggableData});
+      onDropSuccessCallback({'data':dragDropService.draggableData});
     }
-    if(_dragDropService.onDragSuccessCallback!=null){
-      _dragDropService.onDragSuccessCallback(); 
+    if(dragDropService.onDragSuccessCallback!=null){
+      dragDropService.onDragSuccessCallback(); 
     }
-    _elem.classes.remove(_dragDropConfig.onDragOverClass);
-    _elem.classes.remove(_dragDropConfig.onDragEnterClass);
+    elem.classes.remove(ddConfig.onDragOverClass);
+    elem.classes.remove(ddConfig.onDragEnterClass);
   }
-  
-  bool isAllowedDragZone() {
-    if (dropZoneNames.isEmpty && _dragDropService.allowedDropZones.isEmpty) {
-      return true;
-    }
-    for (String dragZone in _dragDropService.allowedDropZones) {
-      if (dropZoneNames.contains(dragZone)) {
-        return true;
-      }
-    }
-    return false;
-  }
+
 }
